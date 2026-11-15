@@ -1,0 +1,222 @@
+git_commands.txt - Campus Reading Circle
+Student : Srinidhi Naren | 2024eb02330
+Author  : Srinidhi Naren <129311314+citruswhale@users.noreply.github.com> (repository-local config)
+GitHub  : https://github.com/citruswhale/campus-reading-circle (public, account citruswhale)
+Run on  : 2026-11-15, macOS, git 2.54.0
+Note    : The repository previously held earlier trial runs of this workflow; TASK 6 replaces
+          them with git push --force.
+
+LEGEND  $ executed command, in order   # explanation   > actual output (long outputs such as diffs,
+        file contents and graphs are omitted here; they are in the PDF)   [file] file edit made by
+        the workflow script   EXAMPLE = explanatory only, NOT executed
+
+COMMITS (hash, branch, time, subject)
+  9ec55fc  main     17:50  Create reading club home and about pages
+  69a6730  main     17:52  Publish weekly reading schedule
+  e3205fb  feature  17:54  Describe club membership on feature branch
+  bd742b1  main     17:56  Merge membership section into main (parents 69a6730 e3205fb)
+  06fe7dd  main     17:58  Exclude logs and generated cache
+  3bfeb57  main     18:00  Add trial event banner
+  ecca6dd  main     18:02  Revert "Add trial event banner"
+
+== TASK 1  Initialise the project (package A) ==================================================
+
+[file] mkdir -p /Users/srinidhinarendran/Downloads/Srinidhi_SGA1_Work/campus-reading-circle
+[file] Create index.html (club home page)
+[file] Create about.html (club purpose page)
+$ git init -b main
+  # Initialise the repository with main as the primary branch.
+$ git config --local user.name 'Srinidhi Naren'
+  # Set the author name for this repository only (global config untouched).
+$ git config --local user.email 129311314+citruswhale@users.noreply.github.com
+  # Set the author email for this repository only: the GitHub noreply address of account
+    citruswhale.
+$ git config --show-origin --get user.name
+  # Verify the author name comes from the repository-local .git/config.
+  > file:.git/config	Srinidhi Naren
+$ git config --show-origin --get user.email
+  # Verify the author email and its repository-local origin.
+  > file:.git/config	129311314+citruswhale@users.noreply.github.com
+$ git status --short
+  # Show the two new, untracked project files.
+  > ?? about.html
+  > ?? index.html
+$ git add index.html about.html
+  # Stage the home and about pages.
+$ git commit -m 'Create reading club home and about pages'
+  # Record the initial project commit.
+  > [main (root-commit) 9ec55fc] Create reading club home and about pages
+$ git log '--format=%h %an <%ae> %s'
+  # Confirm the commit author identity.
+
+== TASK 2  Branch and develop (package B) ======================================================
+
+[file] Edit index.html: add "<p>Weekly reading discussion: Friday at 5 PM.</p>"
+$ git diff -- index.html
+  # Review the weekly schedule change before staging.
+$ git add index.html
+  # Stage the schedule update.
+$ git commit -m 'Publish weekly reading schedule'
+  # Record the schedule update on main.
+  > [main 69a6730] Publish weekly reading schedule
+$ git branch feature
+  # Create the feature branch from the current main commit.
+$ git switch feature
+  # Switch to the feature branch.
+[file] Edit about.html: add "<p>Membership is open to students interested in fiction and non-fiction.</p>"
+$ git diff -- about.html
+  # Review the membership change before staging.
+$ git add about.html
+  # Stage the membership update.
+$ git commit -m 'Describe club membership on feature branch'
+  # Record the membership update on feature.
+  > [feature e3205fb] Describe club membership on feature branch
+$ git log --oneline --graph --decorate --all
+  # Verify branch history: feature is one commit ahead of main.
+$ git log --oneline main..feature
+  # Commits on feature that are not yet on main.
+  > e3205fb Describe club membership on feature branch
+$ git switch main
+  # Return to main before merging.
+
+== TASK 3  Merge with --no-ff (package B) ======================================================
+
+$ git merge --no-ff feature -m 'Merge membership section into main'
+  # Merge feature into main, always creating a merge commit.
+  > Merge made by the 'ort' strategy.
+  >  about.html | 2 +-
+  >  1 file changed, 1 insertion(+), 1 deletion(-)
+$ git log --oneline --graph --decorate --all
+  # Commit graph including the merge topology.
+$ git log -1 '--format=commit %H%nparents %P%nsubject %s' HEAD
+  # The merge commit has two parents.
+  > commit bd742b1f0542fbafc6ad0d1e8baa3d8e40b62724
+  > parents 69a67300dd03aedf3bd57ee34164da19e0b937a7 e3205fbd0e09982085b89320f531d4c08d5cb921
+  > subject Merge membership section into main
+$ git branch -v
+  # The feature branch is preserved after the merge.
+  >   feature e3205fb Describe club membership on feature branch
+  > * main    bd742b1 Merge membership section into main
+
+== TASK 4  Ignore files (package C) ============================================================
+
+[file] Create .gitignore containing "*.log" and "cache/"
+[file] Create sample files debug.log and cache/notes.txt
+$ git status --short
+  # Only .gitignore is reported as untracked; the sample log and cache files are hidden.
+  > ?? .gitignore
+$ git add .gitignore
+  # Stage the ignore rules.
+$ git commit -m 'Exclude logs and generated cache'
+  # Record the ignore rules.
+  > [main 06fe7dd] Exclude logs and generated cache
+$ git check-ignore -v debug.log cache/notes.txt
+  # Which .gitignore rule matches each sample path.
+  > .gitignore:1:*.log	debug.log
+  > .gitignore:2:cache/	cache/notes.txt
+$ git status --short --ignored
+  # Ignored paths (!!) in the working tree.
+  > !! cache/
+  > !! debug.log
+$ git status --short
+  # Working tree is clean: ignored files are not reported.
+  > (no output)
+$ git ls-files
+  # Tracked files: debug.log and cache/notes.txt are absent.
+  > .gitignore
+  > about.html
+  > index.html
+
+== TASK 5  Undo a change with git revert (package D) ===========================================
+
+[file] Append "<!-- Trial book-swap banner to be removed with revert. -->" to index.html
+$ git diff -- index.html
+  # Review the temporary trial banner.
+$ git add index.html
+  # Stage the trial banner.
+$ git commit -m 'Add trial event banner'
+  # Record the trial banner commit.
+  > [main 3bfeb57] Add trial event banner
+$ git show --stat HEAD
+  # The trial commit and the file it changed.
+$ git revert --no-edit HEAD
+  # New commit that undoes the trial commit without deleting history.
+  > [main ecca6dd] Revert "Add trial event banner"
+$ git log --oneline -3
+  # History keeps both the trial commit and its revert.
+  > ecca6dd Revert "Add trial event banner"
+  > 3bfeb57 Add trial event banner
+  > 06fe7dd Exclude logs and generated cache
+$ git diff --exit-code 'HEAD~2' HEAD -- index.html
+  # Empty diff (exit 0): index.html matches its state before the trial commit.
+  > (no output)
+$ git grep -n book-swap HEAD -- index.html
+  # No match (exit 1): the banner is absent from the final commit.
+  > (no output)
+  > exit code 1 (expected)
+$ git status --short
+  # Working tree is clean after the revert.
+  > (no output)
+
+== TASK 6  Publish to GitHub (package E) =======================================================
+
+$ gh api user --jq '.login + " (" + .name + ")"'
+  # Verify which GitHub account is authenticated.
+  > citruswhale (Srinidhi Narendran)
+$ gh repo view citruswhale/campus-reading-circle --json owner,visibility --jq '"owner=" + .owner.login + " visibility=" + .visibility'
+  # Confirm the target repository belongs to citruswhale and is PUBLIC.
+  > owner=citruswhale visibility=PUBLIC
+$ git remote add origin https://github.com/citruswhale/campus-reading-circle.git
+  # Link the local repository to the GitHub repository.
+$ git push --force -u origin main feature
+  # Upload main and feature and set upstream tracking; --force replaces earlier trial runs
+    held in the repository.
+  > To https://github.com/citruswhale/campus-reading-circle.git
+  >  + fe441d0...e3205fb feature -> feature (forced update)
+  >  + f4c3ddc...ecca6dd main -> main (forced update)
+  > branch 'feature' set up to track 'origin/feature'.
+  > branch 'main' set up to track 'origin/main'.
+$ git remote -v
+  # Show the configured remote URL.
+  > origin	https://github.com/citruswhale/campus-reading-circle.git (fetch)
+  > origin	https://github.com/citruswhale/campus-reading-circle.git (push)
+$ git ls-remote origin refs/heads/main refs/heads/feature
+  # Branch hashes stored on GitHub.
+  > e3205fbd0e09982085b89320f531d4c08d5cb921	refs/heads/feature
+  > ecca6dd06ea41542fe0ab1a6ff4a7f9949beed0b	refs/heads/main
+$ git rev-parse main feature
+  # Local branch hashes for comparison.
+  > ecca6dd06ea41542fe0ab1a6ff4a7f9949beed0b
+  > e3205fbd0e09982085b89320f531d4c08d5cb921
+
+== TASK 6  Commit and push this command record (package F) =====================================
+
+Executed right after this file was written. A file cannot contain the hash of the commit that
+adds it, so their outputs are appended only to the submission copy ("RESULTS").
+$ git add git_commands.txt
+  # Stage this command record.
+$ git commit -m 'Add annotated Git command record'
+  # Commit it on main.
+$ git push origin main
+  # Publish the new main commit.
+$ git log --oneline --graph --decorate --all
+  # Final commit graph.
+$ git rev-parse main feature
+  # Local branch hashes.
+$ git ls-remote origin refs/heads/main refs/heads/feature
+  # GitHub branch hashes (must match).
+$ git status -sb
+  # In sync with origin, clean tree.
+$ gh repo view citruswhale/campus-reading-circle ...
+  # Confirm URL and PUBLIC visibility.
+$ gh api 'repos/citruswhale/campus-reading-circle/commits?sha=main' ...
+  # GitHub account credited for each commit.
+$ curl -s -o /dev/null -w "HTTP %{http_code}\n" https://github.com/citruswhale/campus-reading-circle
+  # Signed-out request: HTTP 200 = public.
+
+== EXPLANATORY NOTES - NOT EXECUTED ===========================================================
+
+EXAMPLE  git remote add origin https://github.com/OWNER/REPOSITORY.git
+  # Draft placeholder; replaced by the real URL https://github.com/citruswhale/campus-reading-circle.git
+EXAMPLE  git reset --hard HEAD~1
+  # Would delete the trial commit; not used. Task 5 uses history-preserving git revert.
